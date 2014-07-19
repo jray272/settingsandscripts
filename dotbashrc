@@ -1,0 +1,11 @@
+# Prompt is bolded username@hostname pwd
+export PS1='\[\e[1m\]\u@\h:\W $ \[\e[0m\]'
+
+# Pattern matches in red
+export GREP_OPTIONS='--color=auto'
+
+# Add color to ls
+export CLICOLOR=1
+export LSCOLORS=exaxcxdxcxegedabagacad
+
+

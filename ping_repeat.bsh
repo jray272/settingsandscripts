@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# A simple script that can be used to determine which outlets in an apartment
+# are connected to the internet.
+
+while ((1 == 1))
+do
+    echo ""
+    echo "Pinging google.com"
+    ping -c 2 -t 2 google.com
+    if (($?)); then
+	say "Could not connect"
+    else
+	say "Connected"
+    fi
+    sleep 1
+done
