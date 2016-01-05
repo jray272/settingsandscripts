@@ -8,7 +8,7 @@ export GREP_OPTIONS='--color=auto'
 export CLICOLOR=1
 export LSCOLORS=exaxcxdxcxegedabagacad
 
-# Alias emacs
-alias eamcs="emacs"
-alias e="emacs"
-
+# Source alias files if they exist
+if [ -e ~/.bash_aliases ]; then
+  source ~/.bash_aliases
+fi
