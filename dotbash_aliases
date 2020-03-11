@@ -4,9 +4,56 @@ alias lla="ls -la"
 alias eamcs="emacs"
 alias e="emacs"
 
-function foogrep() {
-  grep -rn --color $@
+# Use ag (The Silver Searcher) for speed. It also automatically ignores
+# folders/files found in .gitignore.
+alias recgrep='ag -s --color-path "0;35" --color-line-number "0;32" --color-match "1;31"'
+
+gc() {
+  recgrep --file-search-regex="(.*\.cc)|(.*\.c$)|(.*\.cpp)|(.*\.cxx)" "$@"
 }
+
+gh() {
+  recgrep --file-search-regex="(.*\.h)|(.*\.hpp)|(.*\.hpp)" "$@"
+}
+
+gch() {
+  recgrep --file-search-regex="(.*\.cc)|(.*\.c$)|(.*\.cpp)|(.*\.cxx)|(.*\.h)|(.*\.hpp)|(.*\.hpp)" "$@"
+}
+
+gp() {
+  recgrep --file-search-regex=".*\.py$" "$@"
+}
+
+gj() {
+  recgrep --file-search-regex=".*\.js$" "$@"
+}
+
+gjv() {
+  recgrep --file-search-regex=".*\.java$" "$@"
+}
+
+gpr() {
+  recgrep --file-search-regex=".*\.proto$" "$@"
+}
+
+alias gproto=gpr
+
+gg() {
+  recgrep --file-search-regex="(.*\.gy.*)|(.*\.gn.*)" "$@"
+}
+
+ggn() {
+  recgrep --file-search-regex=".*\.gn.*" "$@"
+}
+
+gt() {
+  recgrep --file-search-regex="(CMakeLists.txt)|(.*\.cmake)" "$@"
+}
+
+gb() {
+  recgrep --file-search-regex="(BUILD)|(CROSSTOOL)|(.*\.bzl)" "$@"
+}
+
 
 alias gc='foogrep --include="*.cc" --include="*.c" --include="*.cpp" --include="*.cxx"'
 alias gh='foogrep --include="*.h" --include="*.hpp"'

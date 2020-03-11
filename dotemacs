@@ -1,3 +1,5 @@
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -9,7 +11,7 @@
 
 (require 'cc-mode)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
-(setq c-default-style "bsd"
+(setq c-default-style "k&r"
       c-basic-offset 2)
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
 
@@ -19,6 +21,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;; Open buffer in the current window, instead of the opposite window
+(global-set-key "\C-x\C-b" 'buffer-menu)
 
 ;;; Indentation for python
 
@@ -35,3 +40,35 @@
   "Map the return key with `newline-and-indent'"
   (local-set-key (kbd "RET") 'newline-and-indent))
 (add-hook 'python-mode-hook 'set-newline-and-indent)
+
+;; Makes the scrolling behavior more similar to a modern text editor. Instead
+;; of jumping to the next page when the cursor reaches the bottom, this makes
+;; it scroll smoothly.
+;; From https://github.com/aspiers/smooth-scrolling
+(require 'smooth-scrolling)
+(smooth-scrolling-mode 1)
+(setq smooth-scroll-margin 2)
+
+;; I can never remember the right command for "refresh this buffer".
+(defalias 'refresh-buffer 'revert-buffer)
+
+;; Don't send sentences with two spaces. (Useful when using fill-region).
+(setq sentence-end-double-space nil)
+
+;; Typical maximum width for C++ code.
+(setq fill-column 80)
+
+;; Require a newline character at the end
+(setq-default require-newline-final t)
+
+;; No tabs
+(setq-default indent-tabs-mode nil)
+
+;; Make column number visible at the bottom of the emacs window
+(setq column-number-mode t)
+
+;; Send backup files to the /tmp directory
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
