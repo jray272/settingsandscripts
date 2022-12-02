@@ -1,4 +1,15 @@
+(require 'package)
+(add-to-list 'package-archives  '("melpa" . "https://melpa.org/packages/") t)
+
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (add-to-list 'load-path "~/.emacs.d/lisp/")
+(add-to-list 'load-path "~/.emacs.d/lisp/rust-mode/")
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -7,6 +18,7 @@
  ;; If there is more than one, they won't work right.
  '(inhibit-startup-screen t)
  '(mouse-scroll-delay 0.35)
+ '(package-selected-packages '(clang-format protobuf-mode dart-mode))
  '(python-indent-offset 2))
 
 (require 'cc-mode)
@@ -14,6 +26,10 @@
 (setq c-default-style "k&r"
       c-basic-offset 2)
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
+
+(defun my-c-setup ()
+   (c-set-offset 'innamespace [0]))
+(add-hook 'c++-mode-hook 'my-c-setup)
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -72,3 +88,102 @@
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
+
+(require 'bazel)
+
+(setq bazel-buildifier-before-save t)
+
+(require 'protobuf-mode)
+
+(autoload 'rust-mode "rust-mode" nil t)
+
+;; Associated .rs files with rust mode
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+
+;; Use spaces instead of tabs for rust mode
+(add-hook 'rust-mode-hook
+          (lambda () (setq indent-tabs-mode nil)))
+
+;; Run rustfmt on save
+(setq rust-format-on-save t)
+
+(setq rust-indent-offset 2)
+
+;; See https://www.emacswiki.org/emacs/ElispFormat
+;; This is clang-format for elisp
+(require 'elisp-format)
+(require 'elfmt)
+
+(defun find-file-if-exists (file)
+  "If file is a non-empty string and file exists, go to it with find-file, otherwise print an error."
+  (if (and (not (equal file ""))
+           (file-exists-p file))
+      (find-file file)
+    (message "Corresponding file does not exist")))
+
+(defun map-to-file-exists (filelist)
+  "map on file-exists-p for all files in filelist"
+  (mapcar (lambda (f)
+            (if (file-exists-p f) f "")) filelist))
+
+(defun return-file-if-any-exists (filelist)
+  "Return first existing file in filelist, or empty string if none exist"
+  (seq-reduce (lambda (a b)
+                (if (equal a "") b a))
+              (map-to-file-exists filelist) ""))
+
+(defun find-some-file-if-exists (filelist)
+  "Do find-file on the first file that exists in filelist."
+  (interactive)
+  (find-file-if-exists (return-file-if-any-exists filelist)))
+
+;; Useful for quickly switching between .cc/.h files. If in an .h file, goes to the corresponding .cc file and vice versa. The corresponding file must be in the same directory.
+(defun cycle-cc-h ()
+  (interactive)
+  "Swaps between .cc/.h files by looking in the same directory for the corresponding file."
+  (let* ((name-sans-ext (file-name-sans-extension buffer-file-name))
+         (extension (file-name-extension buffer-file-name)))
+    (cond ((member extension '("cc" "cpp" "c"))
+           (find-some-file-if-exists (mapcar (lambda (f)
+                                               (concat name-sans-ext f))
+                                             '(".h" ".hpp" ".hh"))))
+          ((member extension '("h" "hh" "hpp"))
+           (find-some-file-if-exists (mapcar (lambda (f)
+                                               (concat name-sans-ext f))
+                                             '(".cc" ".cpp" ".c"))))
+          (t))))
+
+
+(defun cycle-cctest-cc-h ()
+  (interactive)
+  "Same as cycle-cc-h, but for _test.cc, .cc, and .h files."
+  (let* ((name-sans-ext (file-name-sans-extension buffer-file-name))
+         (extension (file-name-extension buffer-file-name)))
+    (cond ((string-suffix-p "_test" name-sans-ext)
+           (find-some-file-if-exists (mapcar (lambda (f)
+                                               (concat (string-remove-suffix "_test" name-sans-ext) f))
+                                             '(".h" ".hh" ".hpp"))))
+          ((string-suffix-p "_unittest" name-sans-ext)
+           (find-some-file-if-exists (mapcar (lambda (f)
+                                               (concat (string-remove-suffix "_unittest" name-sans-ext) f))
+                                             '(".h" ".hh" ".hpp"))))
+          ((member extension '("cc" "cpp" "c"))
+           (find-some-file-if-exists (mapcar (lambda (f)
+                                               (concat name-sans-ext f))
+                                             '("_test.cc" "_test.cpp" "_unittest.cc"
+                                               "_unittest.cpp"))))
+          ((member extension '("h" "hh" "hpp"))
+           (find-some-file-if-exists (mapcar (lambda (f)
+                                               (concat name-sans-ext f))
+                                             '(".cc" ".cpp" ".c"))))
+          (t))))
+
+
+(show-paren-mode 1)
+
+(global-set-key (kbd "C-x <down>") 'cycle-cc-h)
+(global-set-key (kbd "C-x <C-down>") 'cycle-cc-h)
+(global-set-key (kbd "C-x <up>") 'cycle-cctest-cc-h)
+(global-set-key (kbd "C-x <C-up>") 'cycle-cctest-cc-h)
+
+(require 'git-commit)
